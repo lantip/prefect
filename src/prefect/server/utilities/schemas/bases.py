@@ -56,18 +56,14 @@ class PrefectBaseModel(BaseModel):
     when PREFECT_TEST_MODE is on, extra fields are forbidden in order to catch
     subtle unintentional testing errors.
     """
-
-    class Config:
-        # extra attributes are forbidden in order to raise meaningful errors for
-        # bad API payloads
-        # We cannot load this setting through the normal pattern due to circular
-        # imports; instead just check if its a truthy setting directly
+    if HAS_PYDANTIC_V2:
+        model_config = {}
         if os.getenv("PREFECT_TEST_MODE", "0").lower() in ["1", "true"]:
-            extra = "forbid"
+            model_config["extra"] = "forbid"
         else:
-            extra = "ignore"
+            model_config["extra"] = "ignore"
 
-        json_encoders = {
+        model_config["json_encoders"] = {
             # Uses secret fields and strange logic to avoid a circular import error
             # for Secret dict in prefect.blocks.fields
             SecretField: lambda v: v.dict() if getattr(v, "dict", None) else str(v)
@@ -77,13 +73,41 @@ class PrefectBaseModel(BaseModel):
         if pydantic_version is not None and Version(pydantic_version) >= Version(
             "1.9.2"
         ):
-            copy_on_model_validation = "none"
+            model_config["copy_on_model_validation"] = "none"
         else:
-            copy_on_model_validation = False
+            model_config["copy_on_model_validation"] = False
 
         # Use orjson for serialization
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps_extra_compatible
+        model_config["json_loads"] = orjson.loads
+        model_config["json_dumps"] = orjson_dumps_extra_compatible
+    else:
+        class Config:
+            # extra attributes are forbidden in order to raise meaningful errors for
+            # bad API payloads
+            # We cannot load this setting through the normal pattern due to circular
+            # imports; instead just check if its a truthy setting directly
+            if os.getenv("PREFECT_TEST_MODE", "0").lower() in ["1", "true"]:
+                extra = "forbid"
+            else:
+                extra = "ignore"
+
+            json_encoders = {
+                # Uses secret fields and strange logic to avoid a circular import error
+                # for Secret dict in prefect.blocks.fields
+                SecretField: lambda v: v.dict() if getattr(v, "dict", None) else str(v)
+            }
+
+            pydantic_version = getattr(pydantic, "__version__", None)
+            if pydantic_version is not None and Version(pydantic_version) >= Version(
+                "1.9.2"
+            ):
+                copy_on_model_validation = "none"
+            else:
+                copy_on_model_validation = False
+
+            # Use orjson for serialization
+            json_loads = orjson.loads
+            json_dumps = orjson_dumps_extra_compatible
 
     def _reset_fields(self) -> Set[str]:
         """A set of field names that are reset when the PrefectBaseModel is copied.
@@ -257,9 +281,11 @@ class ORMBaseModel(IDBaseModel):
     The ID, created, and updated fields are reset on copy() and not included in
     equality comparisons.
     """
-
-    class Config:
-        orm_mode = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"orm_mode": True}
+    else:
+        class Config:
+            orm_mode = True
 
     created: Optional[DateTimeTZ] = Field(default=None, repr=False)
     updated: Optional[DateTimeTZ] = Field(default=None, repr=False)
@@ -269,8 +295,11 @@ class ORMBaseModel(IDBaseModel):
 
 
 class ActionBaseModel(PrefectBaseModel):
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     def __iter__(self):
         # By default, `pydantic.BaseModel.__iter__` yields from `self.__dict__` directly

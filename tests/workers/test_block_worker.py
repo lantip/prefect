@@ -43,9 +43,11 @@ class MockInfrastructure(Infrastructure):
 
     def preview(self):
         return self.json()
-
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
 
 @pytest.fixture

@@ -241,9 +241,15 @@ class KubernetesJob(Infrastructure):
         return values
 
     # Support serialization of the 'JsonPatch' type
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {JsonPatch: lambda p: p.patch}
+    if HAS_PYDANTIC_V2:
+        model_config = {
+            "arbitrary_types_allowed": True,
+            "json_encoders":  {JsonPatch: lambda p: p.patch}
+        }
+    else:
+        class Config:
+            arbitrary_types_allowed = True
+            json_encoders = {JsonPatch: lambda p: p.patch}
 
     def dict(self, *args, **kwargs) -> Dict:
         d = super().dict(*args, **kwargs)

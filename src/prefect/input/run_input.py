@@ -142,8 +142,11 @@ class RunInputMetadata(pydantic.BaseModel):
 
 
 class RunInput(pydantic.BaseModel):
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = { "extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     _description: Optional[str] = pydantic.PrivateAttr(default=None)
     _metadata: RunInputMetadata = pydantic.PrivateAttr()

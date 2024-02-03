@@ -79,9 +79,11 @@ class Serializer(BaseModel, Generic[D], abc.ABC):
     @abc.abstractmethod
     def loads(self, blob: bytes) -> D:
         """Decode the blob of bytes into an object."""
-
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
 
 class PickleSerializer(Serializer):

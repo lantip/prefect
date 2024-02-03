@@ -61,10 +61,15 @@ class IntervalSchedule(PrefectBaseModel):
             if not provided, the current timestamp will be used
         timezone (str, optional): a valid timezone string
     """
-
-    class Config:
-        extra = "forbid"
-        exclude_none = True
+    if HAS_PYDANTIC_V2:
+        model_config = {
+            "extra": "forbid",
+            "exclude_none": True
+        }
+    else:
+        class Config:
+            extra = "forbid"
+            exclude_none = True
 
     interval: datetime.timedelta
     anchor_date: DateTimeTZ = None
@@ -132,9 +137,11 @@ class CronSchedule(PrefectBaseModel):
             2nd friday of a month by setting the days of month and the weekday.
 
     """
-
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     cron: str = Field(default=..., example="0 0 * * *")
     timezone: Optional[str] = Field(default=None, example="America/New_York")
@@ -196,9 +203,11 @@ class RRuleSchedule(PrefectBaseModel):
         rrule (str): a valid RRule string
         timezone (str, optional): a valid timezone string
     """
-
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     rrule: str
     timezone: Optional[str] = Field(default=None, example="America/New_York")
@@ -333,8 +342,11 @@ class RRuleSchedule(PrefectBaseModel):
 
 
 class NoSchedule(PrefectBaseModel):
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
 
 SCHEDULE_TYPES = Union[IntervalSchedule, CronSchedule, RRuleSchedule, NoSchedule]

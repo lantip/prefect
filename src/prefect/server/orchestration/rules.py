@@ -95,9 +95,11 @@ class OrchestrationContext(PrefectBaseModel):
         initial_state: the initial state of a run
         proposed_state: the proposed state a run is transitioning into
     """
-
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
     session: Optional[Union[sa.orm.Session, AsyncSession]] = ...
     initial_state: Optional[states.State] = ...

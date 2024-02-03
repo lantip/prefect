@@ -126,9 +126,11 @@ class SimplePydantic(pydantic.BaseModel):
 
 class ExtraPydantic(pydantic.BaseModel):
     x: int
-
-    class Config:
-        extra = pydantic.Extra.allow
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "allow"}
+    else:
+        class Config:
+            extra = pydantic.Extra.allow
 
 
 class PrivatePydantic(pydantic.BaseModel):
@@ -137,15 +139,23 @@ class PrivatePydantic(pydantic.BaseModel):
     x: int
     _y: int
     _z: Any = pydantic.PrivateAttr()
-
-    class Config:
-        underscore_attrs_are_private = True
-        extra = pydantic.Extra.forbid  # Forbid extras to raise in tests
+    if HAS_PYDANTIC_V2:
+        model_config = {
+            "underscore_attrs_are_private": True,
+            "extra": "forbid"
+        }
+    else:
+        class Config:
+            underscore_attrs_are_private = True
+            extra = pydantic.Extra.forbid  # Forbid extras to raise in tests
 
 
 class ImmutablePrivatePydantic(PrivatePydantic):
-    class Config:
-        allow_mutation = False
+    if HAS_PYDANTIC_V2:
+        model_config = {"allow_mutation": False}
+    else:
+        class Config:
+            allow_mutation = False
 
 
 class PydanticWithDefaults(pydantic.BaseModel):

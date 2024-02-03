@@ -379,8 +379,11 @@ class TaskRunInput(PrefectBaseModel):
     """
 
     # freeze TaskRunInputs to allow them to be placed in sets
-    class Config:
-        frozen = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"frozen": True}
+    else:
+        class Config:
+            frozen = True
 
     input_type: str
 

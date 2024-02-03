@@ -431,9 +431,11 @@ class BaseResult(pydantic.BaseModel, abc.ABC, Generic[R]):
         **kwargs: Any,
     ) -> "BaseResult[R]":
         ...
-
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
 
 class UnpersistedResult(BaseResult):

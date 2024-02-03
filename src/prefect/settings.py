@@ -1691,9 +1691,11 @@ class Settings(SettingsFieldsMixin):
 
         # Cast to strings and drop null values
         return {key: str(value) for key, value in env.items() if value is not None}
-
-    class Config:
-        frozen = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"frozen": True}
+    else:
+        class Config:
+            frozen = True
 
 
 # Functions to instantiate `Settings` instances
@@ -1856,9 +1858,11 @@ class Profile(BaseModel):
                 )
                 changed.append((setting, setting.deprecated_renamed_to))
         return changed
-
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
 
 class ProfilesCollection:

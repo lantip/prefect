@@ -209,14 +209,8 @@ class Block(BaseModel, ABC):
     definition of a `block_initialization` method that is called after
     initialization.
     """
-
-    class Config:
-        extra = "allow"
-
-        json_encoders = {SecretDict: lambda v: v.dict()}
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type["Block"]):
+    if HAS_PYDANTIC_V2:
+        def v2_schema_extra(schema: Dict[str, Any], model: Type["Block"]):
             """
             Customizes Pydantic's schema generation feature to add blocks related information.
             """
@@ -260,6 +254,62 @@ class Block(BaseModel, ABC):
                                 refs[field.name] = (
                                     type_._to_block_schema_reference_dict()
                                 )
+        model_config = {
+            "extra": "allow",
+            "json_encoders": {SecretDict: lambda v: v.dict()},
+            "json_schema_extra": v2_schema_extra
+        }
+    else:
+        class Config:
+            extra = "allow"
+
+            json_encoders = {SecretDict: lambda v: v.dict()}
+
+            @staticmethod
+            def schema_extra(schema: Dict[str, Any], model: Type["Block"]):
+                """
+                Customizes Pydantic's schema generation feature to add blocks related information.
+                """
+                schema["block_type_slug"] = model.get_block_type_slug()
+                # Ensures args and code examples aren't included in the schema
+                description = model.get_description()
+                if description:
+                    schema["description"] = description
+                else:
+                    # Prevent the description of the base class from being included in the schema
+                    schema.pop("description", None)
+
+                # create a list of secret field names
+                # secret fields include both top-level keys and dot-delimited nested secret keys
+                # A wildcard (*) means that all fields under a given key are secret.
+                # for example: ["x", "y", "z.*", "child.a"]
+                # means the top-level keys "x" and "y", all keys under "z", and the key "a" of a block
+                # nested under the "child" key are all secret. There is no limit to nesting.
+                secrets = schema["secret_fields"] = []
+                for field in model.__fields__.values():
+                    _collect_secret_fields(field.name, field.type_, secrets)
+
+                # create block schema references
+                refs = schema["block_schema_references"] = {}
+                for field in model.__fields__.values():
+                    if Block.is_block_class(field.type_):
+                        refs[field.name] = field.type_._to_block_schema_reference_dict()
+                    if get_origin(field.type_) is Union:
+                        for type_ in get_args(field.type_):
+                            if Block.is_block_class(type_):
+                                if isinstance(refs.get(field.name), list):
+                                    refs[field.name].append(
+                                        type_._to_block_schema_reference_dict()
+                                    )
+                                elif isinstance(refs.get(field.name), dict):
+                                    refs[field.name] = [
+                                        refs[field.name],
+                                        type_._to_block_schema_reference_dict(),
+                                    ]
+                                else:
+                                    refs[field.name] = (
+                                        type_._to_block_schema_reference_dict()
+                                    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

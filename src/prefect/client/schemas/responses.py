@@ -146,8 +146,11 @@ class OrchestrationResult(PrefectBaseModel):
 
 
 class WorkerFlowRunResponse(PrefectBaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = { "arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
     work_pool_id: UUID
     work_queue_id: UUID
@@ -240,8 +243,11 @@ class DeploymentResponse(ObjectBaseModel):
 
 
 class MinimalConcurrencyLimitResponse(PrefectBaseModel):
-    class Config:
-        extra = "ignore"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra":"ignore"}
+    else:
+        class Config:
+            extra = "ignore"
 
     id: UUID
     name: str

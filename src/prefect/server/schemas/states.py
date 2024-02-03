@@ -92,9 +92,11 @@ class StateBaseModel(IDBaseModel):
 
 class State(StateBaseModel, Generic[R]):
     """Represents the state of a run."""
-
-    class Config:
-        orm_mode = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"orm_mode": True}
+    else:
+        class Config:
+            orm_mode = True
 
     type: StateType
     name: Optional[str] = Field(default=None)

@@ -42,8 +42,11 @@ class Operator(AutoEnum):
 class PrefectFilterBaseModel(PrefectBaseModel):
     """Base model for Prefect filters"""
 
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     def as_sql_filter(self, db: "PrefectDBInterface") -> "BooleanClauseList":
         """Generate SQL filter from provided filter parameters. If no filters parameters are available, return a TRUE filter."""

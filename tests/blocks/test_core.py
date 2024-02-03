@@ -2356,9 +2356,11 @@ class TestTypeDispatch:
     def test_base_field_creates_child_instance_with_assignment_validation(self):
         class AssignmentParentModel(BaseModel):
             block: BaseBlock
-
-            class Config:
-                validate_assignment = True
+            if HAS_PYDANTIC_V2:
+                model_config = {"validate_assignment": True}
+            else;
+                class Config:
+                    validate_assignment = True
 
         model = AssignmentParentModel(block=AChildBlock(a=3).dict())
         assert type(model.block) == AChildBlock

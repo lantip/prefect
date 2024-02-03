@@ -15,9 +15,11 @@ else:
 
 class EventDataFilter(PrefectBaseModel):
     """A base class for filtering event data."""
-
-    class Config:
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "forbid"}
+    else:
+        class Config:
+            extra = "forbid"
 
     def get_filters(self) -> List["EventDataFilter"]:
         return [

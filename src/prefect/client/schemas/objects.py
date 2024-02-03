@@ -613,8 +613,11 @@ class TaskRunInput(PrefectBaseModel):
     """
 
     # freeze TaskRunInputs to allow them to be placed in sets
-    class Config:
-        frozen = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"frozen": True}
+    else:
+        class Config:
+            frozen = True
 
     input_type: str
 
@@ -761,8 +764,11 @@ class Workspace(PrefectBaseModel):
     workspace_description: str = Field(..., description="Description of the workspace.")
     workspace_handle: str = Field(..., description="The workspace's unique handle.")
 
-    class Config:
-        extra = "ignore"
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "ignore"}
+    else:
+        class Config:
+            extra = "ignore"
 
     @property
     def handle(self) -> str:

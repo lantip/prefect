@@ -256,9 +256,11 @@ class Trigger(PrefectBaseModel):
 class Automation(PrefectBaseModel):
     """Defines an action a user wants to take when a certain number of events
     do or don't happen to the matching resources"""
-
-    class Config:
-        extra = Extra.ignore
+    if HAS_PYDANTIC_V2:
+        model_config = {"extra": "ignore"}
+    else:
+        class Config:
+            extra = Extra.ignore
 
     name: str = Field(..., description="The name of this automation")
     description: str = Field("", description="A longer description of this automation")

@@ -120,9 +120,11 @@ class RunnerDeployment(BaseModel):
             of the chosen work pool. Refer to the base job template of the chosen work pool for
             available settings.
     """
-
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
     name: str = Field(..., description="The name of the deployment.")
     flow_name: Optional[str] = Field(

@@ -73,11 +73,17 @@ class ContextModel(BaseModel):
     # The context variable for storing data must be defined by the child class
     __var__: ContextVar
     _token: Token = PrivateAttr(None)
-
-    class Config:
-        allow_mutation = False
-        arbitrary_types_allowed = True
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {
+            "allow_mutation": False,
+            "arbitrary_types_allowed": True,
+            "extra": "forbid"
+        }
+    else:
+        class Config:
+            allow_mutation = False
+            arbitrary_types_allowed = True
+            extra = "forbid"
 
     def __enter__(self):
         if self._token is not None:

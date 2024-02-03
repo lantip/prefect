@@ -15,6 +15,7 @@ from prefect.infrastructure import (
     KubernetesJob,
     Process,
 )
+from prefect._internal.pydantic import HAS_PYDANTIC_V2
 from prefect.infrastructure.base import MIN_COMPAT_PREFECT_VERSION
 from prefect.server.schemas.core import Deployment
 from prefect.settings import (
@@ -70,9 +71,11 @@ class MockInfrastructure(Infrastructure):
 
     def preview(self):
         return self.json()
-
-    class Config:
-        arbitrary_types_allowed = True
+    if HAS_PYDANTIC_V2:
+        model_config = {"arbitrary_types_allowed": True}
+    else:
+        class Config:
+            arbitrary_types_allowed = True
 
 
 @pytest.mark.skip(reason="Unclear failure.")

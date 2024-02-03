@@ -362,11 +362,17 @@ class Deployment(BaseModel):
         >>> deployment.apply()
 
     """
-
-    class Config:
-        json_encoders = {SecretDict: lambda v: v.dict()}
-        validate_assignment = True
-        extra = "forbid"
+    if HAS_PYDANTIC_V2:
+        model_config = {
+            "json_encoders": {SecretDict: lambda v: v.dict()},
+            "validate_assignment": True,
+            "extra": "forbid"
+        }
+    else:
+        class Config:
+            json_encoders = {SecretDict: lambda v: v.dict()}
+            validate_assignment = True
+            extra = "forbid"
 
     @property
     def _editable_fields(self) -> List[str]:

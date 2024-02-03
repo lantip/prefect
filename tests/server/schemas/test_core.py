@@ -126,8 +126,11 @@ class TestFlowRunNotificationPolicy:
 class TestFlowRunPolicy:
     class OldFlowRunPolicy(PrefectBaseModel):
         # Schemas ignore extras during normal execution, but raise errors during tests if not explicitly ignored.
-        class Config:
-            extra = "ignore"
+        if HAS_PYDANTIC_V2:
+            model_config = {"extra": "ignore"}
+        else:
+            class Config:
+                extra = "ignore"
 
         max_retries: int = 0
         retry_delay_seconds: float = 0
@@ -165,8 +168,11 @@ class TestFlowRunPolicy:
 class TestTaskRunPolicy:
     class OldTaskRunPolicy(PrefectBaseModel):
         # Schemas ignore extras during normal execution, but raise errors during tests if not explicitly ignored.
-        class Config:
-            extra = "ignore"
+        if HAS_PYDANTIC_V2:
+            model_config = {"extra": "ignore"}
+        else:
+            class Config:
+                extra = "ignore"
 
         max_retries: int = 0
         retry_delay_seconds: float = 0

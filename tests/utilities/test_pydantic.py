@@ -373,8 +373,11 @@ class TestTypeDispatchField:
 
 class TestJsonPatch:
     class PatchModel(pydantic.BaseModel):
-        class Config:
-            arbitrary_types_allowed = True
+        if HAS_PYDANTIC_V2:
+            model_config = {"arbitrary_types_allowed": True}
+        else:
+            class Config:
+                arbitrary_types_allowed = True
 
         patch: JsonPatch = pydantic.Field(default_factory=lambda: JsonPatch([]))
 
